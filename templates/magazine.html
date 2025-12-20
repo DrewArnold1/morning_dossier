@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Morning Dossier</title>
+    <link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+            @bottom-center {
+                content: counter(page);
+            }
+        }
+        @page :first {
+            margin: 0;
+            @bottom-center {
+                content: none;
+            }
+        }
+        
+        body {
+            font-family: 'Georgia', serif;
+            line-height: 1.6;
+            color: #1a1a1a;
+        }
+        
+        /* Cover Page */
+        .cover {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            background-color: #f9f7f1; /* Old paper color */
+            text-align: center;
+            page-break-after: always;
+            padding-top: 4rem;
+        }
+        
+        .cover h1 {
+            font-family: 'UnifrakturMaguntia', cursive;
+            font-size: 5.5rem;
+            margin-bottom: 0.5rem;
+            text-transform: none;
+            letter-spacing: 0;
+            line-height: 1.1;
+            color: #111;
+        }
+        
+        .cover .subtitle {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-style: italic;
+            color: #444;
+            margin-bottom: 2rem;
+        }
+        
+        .header-meta {
+            display: flex;
+            justify-content: space-between;
+            width: 80%;
+            border-top: 2px solid #111;
+            border-bottom: 1px solid #111;
+            padding: 8px 0;
+            margin-bottom: 3rem;
+            font-family: 'Playfair Display', serif;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+        
+        .main-headline {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin: 2rem 10% 1rem 10%;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 2rem;
+        }
+
+        .cover .date {
+            display: none; /* Moved to header-meta */
+        }
+
+        /* Table of Contents */
+        .toc {
+            page-break-after: always;
+        }
+        
+        .toc h2 {
+            text-align: center;
+            text-transform: uppercase;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .toc-item {
+            margin-bottom: 15px;
+            border-bottom: 1px dotted #ccc;
+            padding-bottom: 5px;
+            display: block;
+        }
+        
+        .toc-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+        
+        .toc-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .toc-page {
+            text-decoration: none;
+            color: inherit;
+            font-weight: bold;
+        }
+        
+        .toc-page::after {
+            content: target-counter(attr(href), page);
+        }
+        
+        .toc-summary {
+            font-size: 0.9rem;
+            color: #555;
+            margin-top: 5px;
+            display: block;
+        }
+
+        /* Articles */
+        .article {
+            page-break-after: always;
+            margin-top: 2cm;
+        }
+        
+        .article-header {
+            text-align: center;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .article-title {
+            font-size: 2.2rem;
+            margin-bottom: 0.25rem;
+            line-height: 1.1;
+        }
+        
+        .article-meta {
+            color: #777;
+            font-style: italic;
+            font-size: 0.9rem;
+        }
+        
+        .article-content {
+            text-align: justify;
+        }
+
+        /* Remove top margin from the first element in content to avoid double spacing */
+        .article-content > *:first-child,
+        .article-content > .article-content > *:first-child {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+        }
+        
+        /* Reduce margins for headings inside content */
+        .article-content h1, 
+        .article-content h2, 
+        .article-content h3,
+        .article-content h4 {
+            margin-top: 1rem !important;
+            margin-bottom: 0.25rem !important;
+            line-height: 1.2 !important;
+        }
+
+        /* Hide empty paragraphs that might cause extra whitespace */
+        p:empty {
+            display: none;
+        }
+        
+        .article-content img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 1rem auto;
+            border: 1px solid #ddd;
+        }
+
+        /* Hide tiny images (likely icons) */
+        .article-content img[width="1"], 
+        .article-content img[width="20"], 
+        .article-content img[width="30"],
+        .article-content img[width="40"],
+        .article-content img[width="50"] {
+             display: none;
+        }
+        
+        /* Typography improvements */
+        p {
+            margin-bottom: 0.8rem;
+        }
+        
+        h1, h2, h3 {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #222;
+        }
+        
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        /* Endnotes Styling */
+        .endnotes {
+            margin-top: 3rem;
+            border-top: 1px solid #ccc;
+            padding-top: 1rem;
+            page-break-inside: auto;
+        }
+        
+        .endnotes h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            page-break-after: avoid;
+        }
+        
+        .endnote-item {
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+            color: #444;
+            page-break-inside: avoid; /* Prevent splitting a single note */
+        }
+        
+        .endnote-item a {
+            color: #444;
+            text-decoration: underline;
+        }
+        
+        /* Superscript links in text */
+        sup {
+            font-size: 0.7em;
+            line-height: 0;
+            vertical-align: super;
+        }
+
+        /* Fix for WeasyPrint NoneType error on some transparent elements */
+        * {
+            border-color: black;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Cover -->
+    <div class="cover">
+        <h1>Morning Dossier</h1>
+        <div class="header-meta">
+            <span>Vol. 1, No. 1</span>
+            <span>{{ date }}</span>
+            <span>Price: Attention</span>
+        </div>
+        
+        <div class="subtitle">Your Curated Briefing</div>
+        
+        <!-- Decoration / visual element for cover -->
+        <div style="font-size: 4rem; margin: 2rem 0; color: #333;">
+             &#9749; <!-- Coffee icon or similar -->
+        </div>
+    </div>
+
+    <!-- Table of Contents -->
+    <div class="toc">
+        <h2>Table of Contents</h2>
+        {% for article in articles %}
+        <div class="toc-item">
+            <div class="toc-header">
+                <a href="#article-{{ loop.index }}" class="toc-title">{{ article.title }}</a>
+                <a href="#article-{{ loop.index }}" class="toc-page"></a>
+            </div>
+            <div class="toc-summary">{{ article.summary }}</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Articles -->
+    {% for article in articles %}
+    <article class="article" id="article-{{ loop.index }}">
+        <div class="article-header">
+            <h1 class="article-title">{{ article.title }}</h1>
+            <div class="article-meta">
+                By {{ article.author }} | {{ article.date }}
+            </div>
+        </div>
+        
+        <div class="article-content">
+            {{ article.content | safe }}
+        </div>
+    </article>
+    {% endfor %}
+
+</body>
+</html>
+
