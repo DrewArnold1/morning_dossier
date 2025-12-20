@@ -1,49 +1,62 @@
 # Morning Dossier
 
-A Python script that fetches specific emails from Gmail, formats them using AI, and compiles them into a magazine-style PDF.
+A Python script that fetches specific emails from Gmail, cleans the content, and compiles them into a magazine-style PDF. Perfect for reading your favorite newsletters offline or on a tablet.
 
 ## Prerequisites
 
 1.  **Python 3.8+**
-2.  **Gmail API Credentials**:
-    *   Go to [Google Cloud Console](https://console.cloud.google.com/).
-    *   Create a project and enable the **Gmail API**.
-    *   Create OAuth 2.0 Client IDs (Desktop App).
-    *   Download the JSON file and rename it to `credentials.json` in this directory.
-    *   Add your email (`andrewstephenarnold@gmail.com`) to the Test Users list if the app is in "Testing" mode.
-3.  **OpenAI API Key**:
-    *   Get an API key from [OpenAI](https://platform.openai.com/).
+2.  **Pango** (Required for PDF generation):
+    *   **macOS** (using Homebrew): `brew install pango`
+    *   **Windows**: You may need the GTK3 runtime. See [WeasyPrint docs](https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#windows).
+    *   **Linux**: `sudo apt install python3-pip python3-venv libpango-1.0-0 libpangoft2-1.0-0`
 
 ## Installation
 
-```bash
-pip install -r requirements.txt
-```
+1.  Clone this repository.
+2.  Create and activate a virtual environment:
 
-## Configuration
-
-1.  Create a `.env` file (copy from `env.example`):
     ```bash
-    cp env.example .env
+    # macOS/Linux
+    python3 -m venv venv
+    source venv/bin/activate
+
+    # Windows
+    python -m venv venv
+    venv\Scripts\activate
     ```
-2.  Edit `.env` and add your OpenAI API Key:
+
+3.  Install dependencies:
+    ```bash
+    pip install -r requirements.txt
     ```
-    OPENAI_API_KEY=sk-...
-    ```
+
+## Setup (The Important Part)
+
+To read your emails, you must create a Google Cloud Project and authorize this app.
+
+1.  Go to the [Google Cloud Console](https://console.cloud.google.com/).
+2.  Create a **New Project**.
+3.  Search for and Enable the **Gmail API**.
+4.  Go to **Credentials** (sidebar) -> **Create Credentials** -> **OAuth Client ID**.
+    *   **Application Type**: Desktop App.
+    *   If prompted to configure the "OAuth Consent Screen":
+        *   **User Type**: External.
+        *   **Test Users**: Add **your own email address**. This is crucial for testing.
+5.  Download the JSON credentials file, rename it to `credentials.json`, and place it in the root folder of this project.
 
 ## Usage
 
-1.  Label the emails you want to read in Gmail with the label `morning-dossier`.
-2.  Run the script:
+1.  **Label your emails**: Go to Gmail and create a label called `morning-dossier`. Apply this label to the emails you want to include in your daily digest.
+2.  **Run the script**:
     ```bash
     python main.py
     ```
-3.  On the first run, a browser window will open for you to authorize access to your Gmail account.
-4.  The script will generate a PDF file (e.g., `Morning_Dossier_drew.pdf`) and open it.
+3.  **Authorize**: On the first run, a browser window will open. Log in with your Google account.
+    *   *Note:* You may see a "Google hasn't verified this app" warning since you created it yourself. Click **Advanced** -> **Go to [Project Name] (unsafe)** to proceed.
+4.  **Read**: The script will generate a PDF (e.g., `Morning_Dossier_YourName.pdf`) and open it automatically.
 
 ## Troubleshooting
 
--   **Images not showing**: Ensure the `images` directory exists (the script creates it).
--   **No emails found**: Ensure you have created the label `morning-dossier` in Gmail and applied it to some emails.
--   **Authentication errors**: Delete `token.json` to force re-authentication.
-
+*   **Images not showing**: Ensure the `images` directory exists (the script creates it automatically).
+*   **No emails found**: Double-check that you have applied the `morning-dossier` label to emails in Gmail.
+*   **Authentication errors**: Delete the `token.json` file to force a fresh login.

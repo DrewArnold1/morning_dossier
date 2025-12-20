@@ -1,0 +1,24 @@
+# Environment and Virtual Envs
+venv/
+.env
+
+# Google Credentials and Tokens
+credentials.json
+token.json
+
+# Python Cache
+__pycache__/
+*.py[cod]
+
+# Generated Content (PDFs and downloaded images)
+*.pdf
+images/
+debug.html
+
+# Distribution Builds
+morning_dossier_dist/
+morning_dossier_dist.zip
+
+# System Files
+.DS_Store
+
