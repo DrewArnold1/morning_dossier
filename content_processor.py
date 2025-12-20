@@ -301,7 +301,7 @@ def process_emails(emails_data):
         processed_articles.append({
             'original_subject': email['subject'],
             'title': email['subject'],
-            'author': email['sender'],
+            'author': sender_name,
             'date': email['date'],
             'summary': '',
             'content': clean_body,

@@ -14,6 +14,7 @@
         }
         @page :first {
             margin: 0;
+            background-color: #f9f7f1;
             @bottom-center {
                 content: none;
             }
@@ -23,6 +24,7 @@
             font-family: 'Georgia', serif;
             line-height: 1.6;
             color: #1a1a1a;
+            margin: 0;
         }
         
         /* Cover Page */
@@ -32,7 +34,7 @@
             flex-direction: column;
             justify-content: flex-start;
             align-items: center;
-            background-color: #f9f7f1; /* Old paper color */
+            /* Background moved to @page :first */
             text-align: center;
             page-break-after: always;
             padding-top: 4rem;
@@ -116,6 +118,14 @@
             font-size: 1.1rem;
             text-decoration: none;
             color: inherit;
+        }
+        
+        .toc-author {
+            font-size: 0.9rem;
+            font-style: italic;
+            color: #555;
+            margin-bottom: 2px;
+            display: block;
         }
         
         .toc-page {
@@ -287,6 +297,7 @@
                 <a href="#article-1" class="toc-title">Can we make America feel more affordable?</a>
                 <a href="#article-1" class="toc-page"></a>
             </div>
+            <div class="toc-author">Noahpinion</div>
             <div class="toc-summary"></div>
         </div>
         
@@ -295,6 +306,7 @@
                 <a href="#article-2" class="toc-title">Against Against Boomers</a>
                 <a href="#article-2" class="toc-page"></a>
             </div>
+            <div class="toc-author">Astral Codex Ten</div>
             <div class="toc-summary"></div>
         </div>
         
@@ -303,6 +315,7 @@
                 <a href="#article-3" class="toc-title">Everyone should benefit from AI</a>
                 <a href="#article-3" class="toc-page"></a>
             </div>
+            <div class="toc-author">Matthew Yglesias</div>
             <div class="toc-summary"></div>
         </div>
         
@@ -311,6 +324,7 @@
                 <a href="#article-4" class="toc-title">11-Hour Traffic Jam In Charleston Leads To Local Discussion On Leadership/Mental Health</a>
                 <a href="#article-4" class="toc-page"></a>
             </div>
+            <div class="toc-author">The Carolina Courier</div>
             <div class="toc-summary"></div>
         </div>
         
@@ -319,6 +333,7 @@
                 <a href="#article-5" class="toc-title">Populism As Moral and Intellectual Rot</a>
                 <a href="#article-5" class="toc-page"></a>
             </div>
+            <div class="toc-author">"Bentham's Bulldog from Bentham's Newsletter"</div>
             <div class="toc-summary"></div>
         </div>
         
@@ -327,6 +342,7 @@
                 <a href="#article-6" class="toc-title">I think India can do it</a>
                 <a href="#article-6" class="toc-page"></a>
             </div>
+            <div class="toc-author">Noahpinion</div>
             <div class="toc-summary"></div>
         </div>
         
@@ -338,7 +354,7 @@
         <div class="article-header">
             <h1 class="article-title">Can we make America feel more affordable?</h1>
             <div class="article-meta">
-                By Noahpinion <noahpinion@substack.com> | Sat, 20 Dec 2025 09:39:33 +0000
+                By Noahpinion | Sat, 20 Dec 2025 09:39:33 +0000
             </div>
         </div>
         
@@ -351,7 +367,7 @@
         <div class="article-header">
             <h1 class="article-title">Against Against Boomers</h1>
             <div class="article-meta">
-                By Astral Codex Ten <astralcodexten@substack.com> | Fri, 19 Dec 2025 17:31:20 +0000
+                By Astral Codex Ten | Fri, 19 Dec 2025 17:31:20 +0000
             </div>
         </div>
         
@@ -364,7 +380,7 @@
         <div class="article-header">
             <h1 class="article-title">Everyone should benefit from AI</h1>
             <div class="article-meta">
-                By Matthew Yglesias <matthewyglesias@substack.com> | Fri, 19 Dec 2025 11:02:52 +0000
+                By Matthew Yglesias | Fri, 19 Dec 2025 11:02:52 +0000
             </div>
         </div>
         
@@ -377,7 +393,7 @@
         <div class="article-header">
             <h1 class="article-title">11-Hour Traffic Jam In Charleston Leads To Local Discussion On Leadership/Mental Health</h1>
             <div class="article-meta">
-                By The Carolina Courier <carolinacourier@substack.com> | Thu, 18 Dec 2025 23:06:54 +0000
+                By The Carolina Courier | Thu, 18 Dec 2025 23:06:54 +0000
             </div>
         </div>
         
@@ -390,7 +406,7 @@
         <div class="article-header">
             <h1 class="article-title">Populism As Moral and Intellectual Rot</h1>
             <div class="article-meta">
-                By "Bentham's Bulldog from Bentham's Newsletter" <benthams@substack.com> | Thu, 18 Dec 2025 16:33:28 +0000
+                By "Bentham's Bulldog from Bentham's Newsletter" | Thu, 18 Dec 2025 16:33:28 +0000
             </div>
         </div>
         
@@ -403,7 +419,7 @@
         <div class="article-header">
             <h1 class="article-title">I think India can do it</h1>
             <div class="article-meta">
-                By Noahpinion <noahpinion@substack.com> | Thu, 18 Dec 2025 07:49:20 +0000
+                By Noahpinion | Thu, 18 Dec 2025 07:49:20 +0000
             </div>
         </div>
         
