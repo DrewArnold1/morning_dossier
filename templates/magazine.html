@@ -7,7 +7,7 @@
     <style>
         @page {
             size: A4;
-            margin: 2cm;
+            margin: 1.5cm;
             @bottom-center {
                 content: counter(page);
             }
@@ -22,7 +22,8 @@
         
         body {
             font-family: 'Georgia', serif;
-            line-height: 1.6;
+            font-size: 10pt;
+            line-height: 1.5;
             color: #1a1a1a;
             margin: 0;
         }
@@ -159,7 +160,7 @@
         }
         
         .article-title {
-            font-size: 2.2rem;
+            font-size: 1.8rem;
             margin-bottom: 0.25rem;
             line-height: 1.1;
         }
@@ -172,6 +173,15 @@
         
         .article-content {
             text-align: justify;
+            column-count: 2;
+            column-gap: 0.5cm;
+        }
+
+        /* Prevent nested article-content from inheriting or doubling columns */
+        .article-content .article-content,
+        .article-content div {
+            column-count: auto;
+            width: 100%;
         }
 
         /* Remove top margin from the first element in content to avoid double spacing */
@@ -189,6 +199,7 @@
             margin-top: 1rem !important;
             margin-bottom: 0.25rem !important;
             line-height: 1.2 !important;
+            break-after: avoid;
         }
 
         /* Hide empty paragraphs that might cause extra whitespace */
@@ -202,6 +213,7 @@
             display: block;
             margin: 1rem auto;
             border: 1px solid #ddd;
+            break-inside: avoid;
         }
 
         /* Hide tiny images (likely icons) */

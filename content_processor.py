@@ -2,8 +2,47 @@ import os
 import re
 from bs4 import BeautifulSoup, Tag
 from dotenv import load_dotenv
+from openai import OpenAI
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 load_dotenv()
+
+def clean_with_ai(html_content, title):
+    """
+    Uses OpenAI to intelligently strip boilerplate while preserving content structure and local images.
+    """
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        print("Warning: No OpenAI API Key found. Skipping AI cleaning.")
+        return html_content
+
+    client = OpenAI(api_key=api_key)
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": """
+You are an expert editor for a printing press. 
+Your job is to clean up HTML emails to be printed as a nice book.
+
+RULES:
+1. Remove all ads, navigation menus, "view in browser" links, "subscribe" buttons, and tracking pixels.
+2. Remove the "Header" if it just repeats the email subject.
+3. Remove footer boilerplate (unsubscribe links, address, privacy policy).
+4. KEEP the main article content intact.
+5. KEEP all <img> tags exactly as they are (do not change src attributes).
+6. Return only the cleaned HTML <body> content. Do not include <html> or <head> tags.
+7. Do not use Markdown backticks in your response. Just return the raw HTML.
+"""},
+                {"role": "user", "content": f"Title: {title}\n\nHTML Content:\n{html_content}"}
+            ],
+            temperature=0.2,
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"Error during AI cleaning: {e}")
+        return html_content
 
 def process_endnotes(soup):
     """
@@ -211,13 +250,56 @@ def clean_html(html_content, remove_title=None, author_name=None):
 
     # Generic "Like", "Share", "Unsubscribe" text detection
     # This is a bit aggressive, so we target specific small blocks
-    for element in soup.find_all(['p', 'div', 'span', 'a']):
-        text = element.get_text().lower().strip()
-        if text in ["share", "comment", "subscribe", "unsubscribe", "update your preferences", "view in browser"]:
-            element.decompose()
+    ad_markers = [
+        "ads powered by",
+        "adchoices",
+        "sponsored by",
+        "advertisement",
+    ]
+
+    footer_markers = [
+        "share", "comment", "subscribe", "unsubscribe", 
+        "update your preferences", "view in browser",
+        "manage your email settings",
+        "privacy policy", "terms of service", "california notices",
+        "connect with us on", "all rights reserved",
+        "received this email because", "stop receiving",
+        "thanks for reading", "we’ll see you",
+        "we'd like your feedback", "need help? review our",
+        "the new york times company",
+        "get the new york times app"
+    ]
+
+    for element in soup.find_all(['p', 'div', 'span', 'a', 'h3', 'h4', 'table', 'td', 'tr']):
+        text = element.get_text(" ", strip=True).lower()
+        
+        # 1. Check for Ads
+        if any(marker in text for marker in ad_markers):
+             # Remove if it's a relatively small block (likely just the ad label or wrapper)
+             # or if it explicitly says "ads powered by liveintent" which is definitely trash
+             if len(text) < 200 or "ads powered by liveintent" in text:
+                 element.decompose()
+                 continue
+
+        # 2. Check for Footer/Boilerplate
+        # We enforce a length limit to avoid deleting the main content if it happens to contain a keyword
+        if len(text) < 500:
+            if any(marker in text for marker in footer_markers):
+                element.decompose()
+                continue
+            
+            # Specific check for NYT reporter lists which are often just names and emails
+            # Pattern: Name, Title/Role, Location @handle
+            if "@" in text and ("editor" in text or "reporter" in text) and len(text) < 200:
+                # Only delete if it looks like a signature line (not a mention in text)
+                # Heuristic: mostly names and titles
+                element.decompose()
+                continue
+
         # Remove elements that are just links to "Read in app"
-        if "read in app" in text and len(text) < 20:
+        if "read in app" in text and len(text) < 50:
             element.decompose()
+            continue
 
     # Remove tiny images (likely tracking pixels or icons)
     for img in soup.find_all('img'):
@@ -249,6 +331,13 @@ def clean_html(html_content, remove_title=None, author_name=None):
             if text and (re.match(r'^[\.\s…•·∙]+$', text) or text == "."):
                 element.decompose()
             
+    # Final pass: Remove empty elements again (since we might have emptied some containers)
+    for element in soup.find_all(['div', 'p', 'span', 'h3', 'h4', 'blockquote', 'table', 'tr', 'td']):
+        if not element.get_text(strip=True):
+             # Check for images/iframes/hr/br/inputs
+             if not element.find(['img', 'iframe', 'hr', 'br', 'input']):
+                 element.decompose()
+
     # Remove all style attributes to prevent weird CSS issues
     for tag in soup.find_all(True):
         if tag.has_attr('style'):
@@ -259,10 +348,10 @@ def clean_html(html_content, remove_title=None, author_name=None):
         content = soup.body
         # Unwrapper body tag
         content.name = "div"
-        content.attrs = {"class": "article-content"}
+        # content.attrs = {"class": "article-content"} # Removed to avoid nested columns
         return str(content)
     else:
-        return f'<div class="article-content">{str(soup)}</div>'
+        return f'<div>{str(soup)}</div>'
 
 def text_to_html(text):
     """
@@ -275,37 +364,77 @@ def text_to_html(text):
             html += f"<p>{p.strip()}</p>"
     return html
 
+def process_single_email(email):
+    """
+    Helper function to process a single email.
+    """
+    print(f"Processing: {email['subject']}")
+    
+    # Determine content source
+    raw_html = email.get('html_body')
+    raw_text = email.get('body')
+    
+    # Extract sender name for cleaning
+    sender_name = email.get('sender', '')
+    # Parse name from "Name <email>" format if needed
+    if '<' in sender_name:
+        sender_name = sender_name.split('<')[0].strip()
+    
+    if raw_html:
+        # 1. Basic structural cleanup (remove scripts, styles)
+        pre_cleaned = clean_html(raw_html, remove_title=email['subject'], author_name=sender_name)
+        
+        # 2. AI Polish (Optional but recommended)
+        # We pass the pre-cleaned HTML to save tokens and help the AI focus
+        if os.getenv("OPENAI_API_KEY"):
+            print(f"  > AI Cleaning: {email['subject']}...")
+            clean_body = clean_with_ai(pre_cleaned, email['subject'])
+        else:
+            clean_body = pre_cleaned
+    else:
+        clean_body = text_to_html(raw_text)
+        
+    return {
+        'original_subject': email['subject'],
+        'title': email['subject'],
+        'author': sender_name,
+        'date': email['date'],
+        'summary': '',
+        'content': clean_body,
+        'images': email.get('images', [])
+    }
+
 def process_emails(emails_data):
     processed_articles = []
     
-    print("Processing emails...")
+    print(f"Processing {len(emails_data)} emails in parallel...")
     
-    for email in emails_data:
-        print(f"Processing: {email['subject']}")
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        # Submit all tasks
+        future_to_email = {executor.submit(process_single_email, email): email for email in emails_data}
         
-        # Determine content source
-        raw_html = email.get('html_body')
-        raw_text = email.get('body')
-        
-        # Extract sender name for cleaning
-        sender_name = email.get('sender', '')
-        # Parse name from "Name <email>" format if needed
-        if '<' in sender_name:
-            sender_name = sender_name.split('<')[0].strip()
-        
-        if raw_html:
-            clean_body = clean_html(raw_html, remove_title=email['subject'], author_name=sender_name)
-        else:
-            clean_body = text_to_html(raw_text)
-            
-        processed_articles.append({
-            'original_subject': email['subject'],
-            'title': email['subject'],
-            'author': sender_name,
-            'date': email['date'],
-            'summary': '',
-            'content': clean_body,
-            'images': email.get('images', [])
-        })
+        # Collect results as they complete
+        for future in as_completed(future_to_email):
+            try:
+                article = future.result()
+                processed_articles.append(article)
+            except Exception as exc:
+                print(f"Email processing generated an exception: {exc}")
+
+    # Sort back by date (or original order) if needed. 
+    # Currently we just append as they finish, so order might be scrambled.
+    # Let's try to maintain original order if possible, or sort by date.
+    # Assuming the input list is sorted by date/relevance, we might want to preserve that.
+    
+    # To preserve order, we can map the results back to the original index
+    # But since the input emails_data is a list, we can just re-sort processed_articles
+    # based on the order in emails_data if we had an ID. 
+    # Simplest way: just rely on the fact that PDF generation iterates through them.
+    # If order matters (e.g. latest first), we should sort.
+    # The original 'emails_data' usually comes from Gmail API in date order.
+    
+    # Re-sort based on original list order
+    email_subjects = [e['subject'] for e in emails_data]
+    processed_articles.sort(key=lambda x: email_subjects.index(x['original_subject']) if x['original_subject'] in email_subjects else 999)
             
     return processed_articles

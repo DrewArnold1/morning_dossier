@@ -142,7 +142,7 @@ def get_message_content(service, user_id, msg_id, store_dir='images'):
         traceback.print_exc()
         return None
 
-def fetch_morning_dossier_emails(service, user_id='me', store_dir='images'):
+def fetch_morning_dossier_emails(service, user_id='me', store_dir='images', max_results=None):
     try:
         results = service.users().messages().list(userId=user_id, q='label:morning-dossier').execute()
         messages = results.get('messages', [])
@@ -152,6 +152,12 @@ def fetch_morning_dossier_emails(service, user_id='me', store_dir='images'):
             print("No emails found with label 'morning-dossier'.")
         else:
             print(f"Found {len(messages)} emails.")
+            
+            # Apply limit if specified
+            if max_results:
+                messages = messages[:max_results]
+                print(f"Limiting to first {max_results} emails.")
+
             for msg in messages:
                 print(f"Fetching content for {msg['id']}...")
                 content = get_message_content(service, user_id, msg['id'], store_dir)

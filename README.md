@@ -32,6 +32,7 @@ A Python script that fetches specific emails from Gmail, cleans the content, and
 
 ## Setup (The Important Part)
 
+### 1. Google Gmail API (Required)
 To read your emails, you must create a Google Cloud Project and authorize this app.
 
 1.  Go to the [Google Cloud Console](https://console.cloud.google.com/).
@@ -43,6 +44,16 @@ To read your emails, you must create a Google Cloud Project and authorize this a
         *   **User Type**: External.
         *   **Test Users**: Add **your own email address**. This is crucial for testing.
 5.  Download the JSON credentials file, rename it to `credentials.json`, and place it in the root folder of this project.
+
+### 2. OpenAI API (Optional but Recommended)
+The app uses OpenAI's GPT-4o-mini to intelligently clean ads and boilerplate from newsletters.
+
+1.  Get an API Key from [OpenAI](https://platform.openai.com/).
+2.  Create a `.env` file in the project root (or add to your existing one):
+    ```bash
+    OPENAI_API_KEY=sk-your-key-here
+    ```
+3.  If no key is provided, the app will fall back to basic pattern matching, which is faster but less thorough.
 
 ## Usage
 
